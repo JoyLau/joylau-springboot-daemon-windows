@@ -1,0 +1,11 @@
+<service>
+	<id>@dist.project.id@</id>
+	<name>@dist.project.name@</name>
+	<description>@dist.project.description@</description>
+	<workingdirectory>%BASE%\</workingdirectory>
+	<logpath>%BASE%\logs</logpath>
+	<logmode>rotate</logmode>
+
+	<executable>java</executable>
+	<arguments>-jar "@dist.project.name@.jar"</arguments>
+</service>

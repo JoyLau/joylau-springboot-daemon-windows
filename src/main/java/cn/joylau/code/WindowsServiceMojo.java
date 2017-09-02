@@ -1,27 +1,17 @@
 package cn.joylau.code;
 
-/*
- * Copyright 2001-2005 The Apache Software Foundation.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
+import org.codehaus.plexus.util.FileUtils;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
+import org.dom4j.io.XMLWriter;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.URL;
 
 /**
  * @goal make-win-service
@@ -32,53 +22,117 @@ public class WindowsServiceMojo extends AbstractMojo {
      * @parameter expression="${project.build.directory}"
      * @required
      */
-    private File outputDirectory;
+    private File targetDir;
 
     /**
      * @parameter expression="${project.basedir}"
      * @required
      * @readonly
      */
-    private File basedir;
+    private File baseDir;
     /**
      * @parameter expression="${project.build.sourceDirectory}"
      * @required
      * @readonly
      */
-    private File sourcedir;
+    private File sourceDir;
     /**
      * @parameter expression="${project.build.testSourceDirectory}"
      * @required
      * @readonly
      */
-    private File testSourcedir;
+    private File testSourceDir;
 
-    public void execute() throws MojoExecutionException {
+    /** @parameter expression="${project.groupId}"
+     *  @required
+     */
+    private String groupId;
 
-        System.out.println("测试插件能否运行");
-        File f = outputDirectory;
+    /** @parameter expression="${project.artifactId}"
+     *  @required
+     */
+    private String artifactId;
 
-        if (!f.exists()) {
-            f.mkdirs();
-        }
+    /** @parameter expression="${project.version}"
+     *  @required
+     */
+    private String version;
 
-        File touch = new File(f, "touch.txt");
+    /** @parameter expression="${project.description}"
+     *  @required
+     */
+    private String description;
 
-        FileWriter w = null;
+
+    private static final String EXE_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/service.exe";
+    private static final String XML_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/service.xml";
+    private static final String CONFIG_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/service.exe.config";
+
+    public void execute() {
+        getLog().info("开始生成 Windows Service 必要的文件");
+
+        getLog().info(version);
         try {
-            w = new FileWriter(touch);
-
-            w.write("touch.txt");
-        } catch (IOException e) {
-            throw new MojoExecutionException("Error creating file " + touch, e);
-        } finally {
-            if (w != null) {
-                try {
-                    w.close();
-                } catch (IOException e) {
-                    // ignore
-                }
+            /*创建文件夹*/
+            File distDir = new File(targetDir, File.separator + "dist");
+            if (distDir.exists()) {
+                FileUtils.deleteDirectory(distDir);
             }
+            FileUtils.mkdir(distDir.getPath());
+            File logDir = new File(distDir,File.separator + "logs");
+            FileUtils.mkdir(logDir.getPath());
+
+            /*下载文件*/
+            FileUtils.copyURLToFile(new URL(XML_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".xml"));
+            FileUtils.copyURLToFile(new URL(EXE_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".exe"));
+            FileUtils.copyURLToFile(new URL(CONFIG_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".exe.config"));
+            FileUtils.copyFile(new File(targetDir.getPath()+getJarName()),new File(distDir,getJarName()));
+
+
+            convert(new File(distDir.getPath()+File.separator+getJarPrefixName()+".xml"));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+
+    /**
+     * 属性转化
+     * @param xmlFile xml文件
+     */
+    private void convert(File xmlFile){
+        SAXReader reader = new SAXReader();
+        try {
+            Document document = reader.read(xmlFile);
+            Element root = document.getRootElement();
+            root.element("id").setText("hehe");
+            saveXML(document,xmlFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 保存 XML 文件
+     * @param document 文档
+     * @param xmlFile xml文件
+     */
+    private void saveXML(Document document, File xmlFile){
+        try {
+            XMLWriter writer = new XMLWriter(new OutputStreamWriter(new FileOutputStream(xmlFile), "UTF-8"));
+            writer.write(document);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getJarPrefixName(){
+        return File.separator+artifactId+"-"+version;
+    }
+
+    private String getJarName(){
+        return File.separator+artifactId+"-"+version+".jar";
     }
 }
