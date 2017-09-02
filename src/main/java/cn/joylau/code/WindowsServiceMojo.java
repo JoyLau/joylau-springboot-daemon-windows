@@ -7,61 +7,62 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.URL;
 
 /**
  * @goal make-win-service
- * @phase process-sources
+ * @phase package
  */
 public class WindowsServiceMojo extends AbstractMojo {
     /**
-     * @parameter expression="${project.build.directory}"
+     * @parameter property="project.build.directory"
      * @required
      */
     private File targetDir;
 
     /**
-     * @parameter expression="${project.basedir}"
+     * @parameter property="project.basedir"
      * @required
      * @readonly
      */
     private File baseDir;
     /**
-     * @parameter expression="${project.build.sourceDirectory}"
+     * @parameter property="project.build.sourceDirectory"
      * @required
      * @readonly
      */
     private File sourceDir;
     /**
-     * @parameter expression="${project.build.testSourceDirectory}"
+     * @parameter property="project.build.testSourceDirectory"
      * @required
      * @readonly
      */
     private File testSourceDir;
 
-    /** @parameter expression="${project.groupId}"
+    /** @parameter property="project.groupId"
      *  @required
      */
     private String groupId;
 
-    /** @parameter expression="${project.artifactId}"
+    /** @parameter property="project.artifactId"
      *  @required
      */
     private String artifactId;
 
-    /** @parameter expression="${project.version}"
+    /** @parameter property="project.version"
      *  @required
      */
     private String version;
 
-    /** @parameter expression="${project.description}"
-     *  @required
+    /** @parameter property="project.description"
      */
     private String description;
+
+    /**
+     * @parameter property="arguments"
+     */
+    private String[] arguments;
 
 
     private static final String EXE_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/service.exe";
@@ -70,13 +71,16 @@ public class WindowsServiceMojo extends AbstractMojo {
 
     public void execute() {
         getLog().info("开始生成 Windows Service 必要的文件");
-
-        getLog().info(version);
         try {
             /*创建文件夹*/
             File distDir = new File(targetDir, File.separator + "dist");
             if (distDir.exists()) {
-                FileUtils.deleteDirectory(distDir);
+                try {
+                    FileUtils.deleteDirectory(distDir);
+                } catch (IOException e) {
+                    getLog().error("删除目录失败！请检查文件是否在使用");
+                    e.printStackTrace();
+                }
             }
             FileUtils.mkdir(distDir.getPath());
             File logDir = new File(distDir,File.separator + "logs");
@@ -86,12 +90,25 @@ public class WindowsServiceMojo extends AbstractMojo {
             FileUtils.copyURLToFile(new URL(XML_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".xml"));
             FileUtils.copyURLToFile(new URL(EXE_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".exe"));
             FileUtils.copyURLToFile(new URL(CONFIG_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".exe.config"));
-            FileUtils.copyFile(new File(targetDir.getPath()+getJarName()),new File(distDir,getJarName()));
-
+            FileUtils.copyFile(new File(targetDir.getPath() + File.separator + getJarName()), new File(distDir, File
+                    .separator + getJarName()));
 
             convert(new File(distDir.getPath()+File.separator+getJarPrefixName()+".xml"));
+            createBat(distDir, "intsall.bat", "install");
+            createBat(distDir, "unintall.bat", "uninstall");
+            createBat(distDir, "start.bat", "start");
+            createBat(distDir, "stop.bat", "stop");
+            createBat(distDir, "restart.bat", "restart");
+
+            getLog().info("正在制作压缩包....");
+            String zipDir = targetDir.getPath() + File.separator + getJarPrefixName() + ".zip";
+            ZipUtils.zip(distDir.getPath(), zipDir);
+
+            getLog().info("正在清除临时文件....");
+            FileUtils.deleteDirectory(distDir);
+            getLog().info("制作完成，文件:" + zipDir);
         } catch (Exception e) {
-            e.printStackTrace();
+            getLog().error("制作Windows Service 失败：",e);
         }
     }
 
@@ -105,7 +122,16 @@ public class WindowsServiceMojo extends AbstractMojo {
         try {
             Document document = reader.read(xmlFile);
             Element root = document.getRootElement();
-            root.element("id").setText("hehe");
+            root.element("id").setText(artifactId);
+            root.element("name").setText(getJarPrefixName());
+            root.element("description").setText(null == description ? "暂无描述" : description);
+            String javaArguments = "";
+            if (arguments != null) {
+                for (String argument : arguments) {
+                    javaArguments = " " + argument;
+                }
+            }
+            root.element("arguments").setText("-jar " + getJarName() + javaArguments);
             saveXML(document,xmlFile);
         } catch (Exception e) {
             e.printStackTrace();
@@ -128,11 +154,51 @@ public class WindowsServiceMojo extends AbstractMojo {
         }
     }
 
-    private String getJarPrefixName(){
-        return File.separator+artifactId+"-"+version;
+    /**
+     * @param outDri   输出目录
+     * @param fileName 文件名
+     * @param text     命令文本
+     */
+    private void createBat(File outDri, String fileName, String text) {
+        if (!outDri.exists()) {
+            FileUtils.mkdir(outDri.getPath());
+        }
+        File file = new File(outDri, fileName);
+        FileWriter w = null;
+        try {
+            w = new FileWriter(file);
+            w.write("@echo off\n" +
+                    "%~dp0" + getJarPrefixName() + ".exe " + text + "\n" +
+                    "echo The " + getJarPrefixName() + " service current state:\n" +
+                    "%~dp0" + getJarPrefixName() + ".exe status\n" +
+                    "pause");
+        } catch (IOException e) {
+//            throw new MojoExecutionException("Error creating file ", e);
+            e.printStackTrace();
+        } finally {
+            if (w != null) {
+                try {
+                    w.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
+        }
     }
 
-    private String getJarName(){
-        return File.separator+artifactId+"-"+version+".jar";
+    /**
+     * 获取jar包前缀名
+     * @return String
+     */
+    private String getJarPrefixName() {
+        return artifactId + "-" + version;
+    }
+
+    /**
+     * 获取jar包全名
+     * @return String
+     */
+    private String getJarName() {
+        return getJarPrefixName() + ".jar";
     }
 }

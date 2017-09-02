@@ -6,8 +6,8 @@
     <packaging>maven-plugin</packaging>
     <version>1.0.RELEASE</version>
     <name>joylau-springboot-daemon-windows Maven Mojo</name>
-    <description>springboot制作成window service 插件</description>
-    <url>http://maven.apache.org</url>
+    <description>一款包括但不限于SpringBoot 应用jar包制作成Window Service 的Maven插件</description>
+    <url>https://github.com/JoyLau/joylau-springboot-daemon-windows</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,9 +30,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.6</version>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.9.7</version>
         </dependency>
 
         <dependency>
