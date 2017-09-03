@@ -68,6 +68,7 @@ public class WindowsServiceMojo extends AbstractMojo {
     private static final String EXE_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/service.exe";
     private static final String XML_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/service.xml";
     private static final String CONFIG_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/service.exe.config";
+    private static final String README_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/reamdme.txt";
 
     public void execute() {
         getLog().info("开始生成 Windows Service 必要的文件");
@@ -87,6 +88,7 @@ public class WindowsServiceMojo extends AbstractMojo {
             FileUtils.mkdir(logDir.getPath());
 
             /*下载文件*/
+            FileUtils.copyURLToFile(new URL(README_FILE_URL), new File(distDir, File.separator + "使用说明.txt"));
             FileUtils.copyURLToFile(new URL(XML_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".xml"));
             FileUtils.copyURLToFile(new URL(EXE_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".exe"));
             FileUtils.copyURLToFile(new URL(CONFIG_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".exe.config"));
