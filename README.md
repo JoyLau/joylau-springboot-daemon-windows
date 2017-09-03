@@ -16,7 +16,7 @@
 
 
 ## 使用演示地址：
-
+MP4 ： http://image.joylau.cn/blog/joylau-springboot-daemon-service-video.mp4
 
 
 ## 怎么使用？
@@ -92,4 +92,7 @@
 
 上面配置了一个 Spring Boot 应用的启动端口9090
 
-注：打包使用过程中需要联网
+## 使用注意
+- 打包使用过程中需要联网
+- 文档中有些图片可能看不到，再次刷新下页面就可以
+- 服务的id为artifactId，服务的名称为artifactId+version，服务的描述为description
