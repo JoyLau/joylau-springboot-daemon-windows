@@ -53,3 +53,39 @@
 ![joylau-springboot-daemon-windows-package-info](http://image.joylau.cn/blog/joylau-springboot-daemon-windows-package-info.jpg)
 
 此时，在你项目的target目录下会生成一个 jar 包名字 一样的压缩包
+进入文件夹，解压这个压缩包，你会看见如下内容的文件
+![joylau-springboot-daemon-windows-package-file](http://image.joylau.cn/blog/joylau-springboot-daemon-windows-package-file.jpg)
+注意：
+ 1. 5个 bat 文件，请右键以管理员的身份运行
+ 2. 各文件的文件名无特殊情况，不需要修改
+ 3. 一旦安装成了 Windows 服务，目录下的文件就不要移动了
+ 4. 命令运行时，可能会提示安装.NET,安装完成就可运行命令了，不过现在大部分的 Windows 服务器或者个人电脑都会默认安装了.NET,没有的话启用一下就好了，如下图：
+ ![joylau-springboot-daemon-windows-.NET](http://image.joylau.cn/blog/joylau-springboot-daemon-windows-.net.jpg)
+
+
+## 扩展参数
+想要在服务启动时添加自定义参数,如 SpringBoot 的配置参数或者 JMV 参数？
+像如下配置即可：
+``` xml
+    <plugin>
+        <groupId>cn.joylau.code</groupId>
+        <artifactId>joylau-springboot-daemon-windows</artifactId>
+        <version>1.0.RELEASE</version>
+        <executions>
+            <execution>
+                <id>make-win-service</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>make-win-service</goal>
+                </goals>
+            </execution>
+        </executions>
+        <configuration>
+            <arguments>
+                <argument>--server.port=9090</argument>
+            </arguments>
+        </configuration>
+    </plugin>
+```
+
+上面配置了一个 Spring Boot 应用的启动端口9090
