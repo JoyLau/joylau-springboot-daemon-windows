@@ -43,6 +43,7 @@ MP4 ： http://image.joylau.cn/blog/joylau-springboot-daemon-service-video.mp4
 注意：
  1. 这里的 phase 写的是 package,意思是该插件在 mvn package 的时候调用,你也可以根据不同的需求来更改，比如 install, test等等
  2. goal 写 make-win-service 就可以了，不需要改动
+ 3. 一般情况下我们的SpringBoot项目会有其他父项目，这时打包会使用 spring-boot-maven-plugin 插件的 repackage,这样的情况的话，请将该插件放置最后面,否则服务运行的话将提示没有主属性
  
 - 在你的项目中按照以上的方式引入插件后，现在可以 打包了
 ``` 
