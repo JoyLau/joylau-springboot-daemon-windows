@@ -97,3 +97,6 @@ MP4 ： http://image.joylau.cn/blog/joylau-springboot-daemon-service-video.mp4
 - 打包使用过程中需要联网
 - 文档中有些图片可能看不到，再次刷新下页面就可以
 - 服务的id为artifactId，服务的名称为artifactId+version，服务的描述为description
+
+## 更多信息
+博客地址 ： http://blog.joylau.cn/
