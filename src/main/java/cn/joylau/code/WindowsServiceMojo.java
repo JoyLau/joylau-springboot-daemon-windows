@@ -133,7 +133,7 @@ public class WindowsServiceMojo extends AbstractMojo {
                     javaArguments = " " + argument;
                 }
             }
-            root.element("arguments").setText("-jar " + getJarName() + javaArguments);
+            root.element("arguments").setText(javaArguments +"-jar " + getJarName());
             saveXML(document,xmlFile);
         } catch (Exception e) {
             e.printStackTrace();
