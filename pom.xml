@@ -4,7 +4,7 @@
     <groupId>cn.joylau.code</groupId>
     <artifactId>joylau-springboot-daemon-windows</artifactId>
     <packaging>maven-plugin</packaging>
-    <version>1.0.RELEASE</version>
+    <version>1.1.RELEASE</version>
     <name>joylau-springboot-daemon-windows Maven Mojo</name>
     <description>一款包括但不限于SpringBoot 应用jar包制作成Window Service 的Maven插件</description>
     <url>https://github.com/JoyLau/joylau-springboot-daemon-windows</url>

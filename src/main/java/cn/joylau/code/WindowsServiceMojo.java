@@ -2,6 +2,7 @@ package cn.joylau.code;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
@@ -9,6 +10,7 @@ import org.dom4j.io.XMLWriter;
 
 import java.io.*;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @goal make-win-service
@@ -64,6 +66,16 @@ public class WindowsServiceMojo extends AbstractMojo {
      */
     private String[] arguments;
 
+    /**
+     * @parameter property="vmOptions"
+     */
+    private String vmOptions;
+
+    /**
+     * @parameter property="programArguments"
+     */
+    private String programArguments;
+
 
     private static final String EXE_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/service.exe";
     private static final String XML_FILE_URL = "http://image.joylau.cn/plugins/joylau-springboot-daemon-windows/service.xml";
@@ -88,7 +100,7 @@ public class WindowsServiceMojo extends AbstractMojo {
             FileUtils.mkdir(logDir.getPath());
 
             /*下载文件*/
-            FileUtils.copyURLToFile(new URL(README_FILE_URL), new File(distDir, File.separator + "使用说明.txt"));
+            FileUtils.copyURLToFile(new URL(README_FILE_URL), new File(distDir, File.separator + "readme.txt"));
             FileUtils.copyURLToFile(new URL(XML_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".xml"));
             FileUtils.copyURLToFile(new URL(EXE_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".exe"));
             FileUtils.copyURLToFile(new URL(CONFIG_FILE_URL), new File(distDir,File.separator+getJarPrefixName()+".exe.config"));
@@ -127,13 +139,12 @@ public class WindowsServiceMojo extends AbstractMojo {
             root.element("id").setText(artifactId);
             root.element("name").setText(getJarPrefixName());
             root.element("description").setText(null == description ? "暂无描述" : description);
-            String javaArguments = "";
-            if (arguments != null) {
-                for (String argument : arguments) {
-                    javaArguments = " " + argument;
-                }
+            if (arguments.length > 0) {
+                getLog().warn("arguments 参数设置已过期,参数配置可能不会生效,请分别设置 vmOptions 参数 和 programArguments 参数 [https://github.com/JoyLau/joylau-springboot-daemon-windows]");
             }
-            root.element("arguments").setText("-jar " + getJarName() + javaArguments);
+            String vm_options = StringUtils.isEmpty(vmOptions) ? " " : " " + vmOptions + " ";
+            String program_arguments = StringUtils.isEmpty(programArguments) ? "" : " " + programArguments;
+            root.element("arguments").setText(vm_options + "-jar " + getJarName() +  program_arguments);
             saveXML(document,xmlFile);
         } catch (Exception e) {
             e.printStackTrace();
@@ -147,7 +158,7 @@ public class WindowsServiceMojo extends AbstractMojo {
      */
     private void saveXML(Document document, File xmlFile){
         try {
-            XMLWriter writer = new XMLWriter(new OutputStreamWriter(new FileOutputStream(xmlFile), "UTF-8"));
+            XMLWriter writer = new XMLWriter(new OutputStreamWriter(new FileOutputStream(xmlFile), StandardCharsets.UTF_8));
             writer.write(document);
             writer.flush();
             writer.close();
@@ -166,10 +177,9 @@ public class WindowsServiceMojo extends AbstractMojo {
             FileUtils.mkdir(outDri.getPath());
         }
         File file = new File(outDri, fileName);
-        FileWriter w = null;
-        try {
-            w = new FileWriter(file);
+        try (FileWriter w = new FileWriter(file)) {
             w.write("@echo off\n" +
+                    "%1 mshta vbscript:CreateObject(\"Shell.Application\").ShellExecute(\"cmd.exe\",\"/c %~s0 ::\",\"\",\"runas\",1)(window.close)&&exit\n" +
                     "%~dp0" + getJarPrefixName() + ".exe " + text + "\n" +
                     "echo The " + getJarPrefixName() + " service current state:\n" +
                     "%~dp0" + getJarPrefixName() + ".exe status\n" +
@@ -177,15 +187,8 @@ public class WindowsServiceMojo extends AbstractMojo {
         } catch (IOException e) {
 //            throw new MojoExecutionException("Error creating file ", e);
             e.printStackTrace();
-        } finally {
-            if (w != null) {
-                try {
-                    w.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
         }
+        // ignore
     }
 
     /**

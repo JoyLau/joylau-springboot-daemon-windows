@@ -18,6 +18,9 @@
 ## 使用演示地址：
 MP4 ： http://image.joylau.cn/blog/joylau-springboot-daemon-service-video.mp4
 
+## 1.1.RELEASE
+- 增加 java 运行时 vm 参数和程序参数的分别配置
+- bat 文件会自动申请管理员权限,不需要手动右键以管理员身份运行
 
 ## 怎么使用？
 - 使用方法很简单，和普通的 Maven 插件一样使用就可以了，如下
@@ -26,7 +29,7 @@ MP4 ： http://image.joylau.cn/blog/joylau-springboot-daemon-service-video.mp4
         <plugin>
             <groupId>cn.joylau.code</groupId>
             <artifactId>joylau-springboot-daemon-windows</artifactId>
-            <version>1.0.RELEASE</version>
+            <version>1.1.RELEASE</version>
             <executions>
                 <execution>
                     <id>make-win-service</id>
@@ -57,7 +60,7 @@ MP4 ： http://image.joylau.cn/blog/joylau-springboot-daemon-service-video.mp4
 进入文件夹，解压这个压缩包，你会看见如下内容的文件
 ![joylau-springboot-daemon-windows-package-file](http://image.joylau.cn/blog/joylau-springboot-daemon-windows-package-file.jpg)
 注意：
- 1. 5个 bat 文件，请右键以管理员的身份运行
+ 1. 5个 bat 文件，双击运行无反应时,请右键以管理员的身份运行
  2. 各文件的文件名无特殊情况，不需要修改
  3. 一旦安装成了 Windows 服务，目录下的文件就不要移动了
  4. 命令运行时，可能会提示安装.NET,安装完成就可运行命令了，不过现在大部分的 Windows 服务器或者个人电脑都会默认安装了.NET,没有的话启用一下就好了，如下图：
@@ -73,7 +76,7 @@ MP4 ： http://image.joylau.cn/blog/joylau-springboot-daemon-service-video.mp4
     <plugin>
         <groupId>cn.joylau.code</groupId>
         <artifactId>joylau-springboot-daemon-windows</artifactId>
-        <version>1.0.RELEASE</version>
+        <version>1.1.RELEASE</version>
         <executions>
             <execution>
                 <id>make-win-service</id>
@@ -84,14 +87,13 @@ MP4 ： http://image.joylau.cn/blog/joylau-springboot-daemon-service-video.mp4
             </execution>
         </executions>
         <configuration>
-            <arguments>
-                <argument>--server.port=9090</argument>
-            </arguments>
+            <vmOptions>-Xms1024m -Xmx2048m</vmOptions>
+            <programArguments>--server.port=9090</programArguments>
         </configuration>
     </plugin>
 ```
 
-上面配置了一个 Spring Boot 应用的启动端口9090
+上面配置了JVM 参数 和 Spring Boot 应用的启动端口
 
 ## 使用注意
 - 打包使用过程中需要联网
