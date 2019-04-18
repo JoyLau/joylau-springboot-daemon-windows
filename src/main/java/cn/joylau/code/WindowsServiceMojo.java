@@ -108,8 +108,8 @@ public class WindowsServiceMojo extends AbstractMojo {
                     .separator + getJarName()));
 
             convert(new File(distDir.getPath()+File.separator+getJarPrefixName()+".xml"));
-            createBat(distDir, "intsall.bat", "install");
-            createBat(distDir, "unintall.bat", "uninstall");
+            createBat(distDir, "install.bat", "install");
+            createBat(distDir, "uninstall.bat", "uninstall");
             createBat(distDir, "start.bat", "start");
             createBat(distDir, "stop.bat", "stop");
             createBat(distDir, "restart.bat", "restart");
